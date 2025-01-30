@@ -58,7 +58,9 @@ export default function RootLayout({
                   <div className="md:hidden font-semibold">
                     <Link href={"/"}>FAQ Agent</Link>
                   </div>
-                  {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
+                  <div className="ml-auto">
+                    {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
+                  </div>
                 </div>
               </nav>
               

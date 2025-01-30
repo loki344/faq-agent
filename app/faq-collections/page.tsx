@@ -18,13 +18,13 @@ export default async function FaqCollectionsPage() {
   return (
     <main className="min-h-screen p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-bold">FAQ Collections</h1>
+        <h1 className="text-2xl font-bold">FAQs</h1>
         <CreateFaqCollection />
       </div>
 
       {collections?.length === 0 ? (
         <Card className="p-8 text-center">
-          <h3 className="text-lg font-semibold mb-2">No FAQ Collections yet</h3>
+          <h3 className="text-lg font-semibold mb-2">No FAQs yet</h3>
           <p className="text-muted-foreground mb-4">
             Create your first FAQ collection to get started
           </p>
