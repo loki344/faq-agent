@@ -38,11 +38,11 @@ export async function POST(request: Request) {
     console.log('[POST] Starting FAQ processing');
     try {
         const body = await request.json();
-        const { fileId } = body;
+        const { fileIds } = body;
         
-        if (!fileId) {
+        if (!fileIds || !Array.isArray(fileIds) || fileIds.length === 0) {
             return NextResponse.json(
-                { success: false, error: 'No fileId provided' },
+                { success: false, error: 'No fileIds provided or invalid format' },
                 { status: 400 }
             );
         }
@@ -52,15 +52,16 @@ export async function POST(request: Request) {
         const thread = await openai.beta.threads.create();
         console.log(`[POST] Thread created with ID: ${thread.id}`);
 
-        console.log('[POST] Creating message in thread');
-        // Add a message to the thread
+        console.log('[POST] Creating messages in thread');
+        // Add messages for each file to the thread
+
         const message = await openai.beta.threads.messages.create(thread.id, {
             role: "user",
             content: "Please analyze this document and create a comprehensive list of FAQs based on its content. Format the response as a JSON array of question-answer pairs.",
-            attachments: [{
+            attachments: fileIds.map(fileId => ({
                 file_id: fileId,
                 tools: [{ type: "file_search" }]
-            }]
+            }))
         });
         console.log(`[POST] Message created with ID: ${message.id}`);
 
