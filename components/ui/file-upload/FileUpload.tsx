@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { FileUploadButton } from './FileUploadButton';
 import { FileList } from './FileList';
+import { FAQDisplay } from './FAQDisplay';
 
 export const FileUpload: React.FC = () => {
   const [files, setFiles] = useState<File[]>([]);
@@ -12,6 +13,7 @@ export const FileUpload: React.FC = () => {
     message: string;
     type: 'success' | 'error';
   }>({ show: false, message: '', type: 'success' });
+  const [generatedFaqs, setGeneratedFaqs] = useState<Array<{ question: string; answer: string }>>([]);
 
   const showNotification = (message: string, type: 'success' | 'error') => {
     setNotification({ show: true, message, type });
@@ -45,6 +47,7 @@ export const FileUpload: React.FC = () => {
 
       const data = await response.json();
       showNotification('File uploaded and processed successfully', 'success');
+      setGeneratedFaqs(prevFaqs => [...prevFaqs, ...data]);
       return data;
     } catch (error) {
       console.error('Upload error:', error);
@@ -117,6 +120,15 @@ export const FileUpload: React.FC = () => {
           )}
         </div>
       </div>
+
+      {generatedFaqs.length > 0 && (
+        <div className="mt-12">
+          <h3 className="text-2xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
+            Generated FAQs
+          </h3>
+          <FAQDisplay faqs={generatedFaqs} />
+        </div>
+      )}
     </div>
   );
 };
