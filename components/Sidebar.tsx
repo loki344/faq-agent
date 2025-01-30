@@ -7,23 +7,18 @@ export function Sidebar({ className }: { className?: string }) {
       <div className="space-y-4 py-4">
         <div className="px-3 py-2">
           <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight">
-            Menu
+            <Link href="/">
+            Home</Link>
           </h2>
           <div className="space-y-1">
             <Link
-              href="/"
+              href="/files"
               className="flex items-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
             >
-              Home
+              Files
             </Link>
             <Link
-              href="/collections"
-              className="flex items-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
-            >
-              FAQ Collections
-            </Link>
-            <Link
-              href="/faqs"
+              href="/faq-collections"
               className="flex items-center rounded-lg px-4 py-2 text-sm font-medium hover:bg-accent hover:text-accent-foreground"
             >
               FAQs
