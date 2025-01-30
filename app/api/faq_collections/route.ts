@@ -27,4 +27,40 @@ export async function GET() {
             { status: 500 }
         );
     }
+}
+
+// Create a new FAQ collection
+export async function POST(request: Request) {
+    try {
+        const body = await request.json();
+        
+        // Validate required fields
+        if (!body.name) {
+            return NextResponse.json(
+                { error: 'Collection name is required' },
+                { status: 400 }
+            );
+        }
+
+        const { data, error } = await supabase
+            .from('faq_collection')
+            .insert([
+                {
+                    name: body.name,
+                }
+            ])
+            .select()
+            .single();
+
+        console.log(data); 
+        console.log(error);
+        if (error) throw error;
+
+        return NextResponse.json(data, { status: 201 });
+    } catch (error: any) {
+        return NextResponse.json(
+            { error: error.message || 'Failed to create FAQ collection' },
+            { status: 500 }
+        );
+    }
 } 

@@ -6,12 +6,14 @@ import { Plus } from 'lucide-react';
 import { CreateFaqCollection } from './create-collection';
 
 export default async function FaqCollectionsPage() {
-  const supabase = createClient();
   
-  const { data: collections } = await supabase
-    .from('faq_collections')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const response = await fetch('http://localhost:3000/api/faq_collections', {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+  const collections = await response.json();
 
   return (
     <main className="min-h-screen p-8 max-w-5xl mx-auto">

@@ -10,7 +10,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { createClient } from '@/utils/supabase/client';
 import { Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -19,18 +18,22 @@ export function CreateFaqCollection() {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('faq_collections')
-        .insert([{ name }]);
+      const response = await fetch('/api/faq_collections', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name }),
+      });
+      const data = await response.json();
 
-      if (error) throw error;
+      if (data.error) throw data.error;
 
       setName('');
       setOpen(false);
