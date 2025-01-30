@@ -40,21 +40,21 @@ export async function POST(request: Request) {
     console.log('[POST] Starting FAQ processing');
     try {
         const formData = await request.formData();
-        const file = formData.get('file');
+        const fileData = formData.get('file');
         
-        if (!file ) {
+        if (!fileData || !(fileData instanceof File)) {
             return NextResponse.json(
-                { success: false, error: 'No file provided' },
+                { success: false, error: 'No valid file provided' },
                 { status: 400 }
             );
         }
 
-        console.log(`[POST] Received file: ${file.name}, size: ${file.size} bytes`);
+        console.log(`[POST] Received file: ${fileData.name}, size: ${fileData.size} bytes`);
         
         console.log('[POST] Creating file in OpenAI');
         // Upload the file directly to OpenAI
         const openaiFile = await openai.files.create({
-            file: file,
+            file: fileData,
             purpose: 'assistants',
         });
         console.log(`[POST] File created in OpenAI with ID: ${openaiFile.id}`);
@@ -95,22 +95,31 @@ export async function POST(request: Request) {
         const assistantResponse = messages.data.find(msg => msg.role === 'assistant');
         if (assistantResponse) {
             console.log('[POST] Found assistant response');
-            console.log('[POST] Response content:', JSON.stringify(assistantResponse.content, null, 2));
+            
+            // Extract the JSON array from the response
+            const content = assistantResponse.content[0] as { type: string, text: { value: string } };
+            console.log(content.text.value, 'to be parsed');
+            
+            // More robust parsing of the markdown-wrapped JSON
+            const jsonString = content.text.value
+                .trim()
+                .replace(/^```json\s*/, '')  // Remove opening fence with any whitespace
+                .replace(/\s*```$/, '')      // Remove closing fence with any whitespace
+                .trim();                     // Remove any remaining whitespace
+            
+            console.log(jsonString, 'after cleaning');  // Debug log
+            
+            const faqArray = JSON.parse(jsonString);
+            console.log('[POST] Sending successful response:', JSON.stringify(faqArray, null, 2));
+            
+            return NextResponse.json(faqArray);
         } else {
             console.warn('[POST] No assistant response found in messages');
+            return NextResponse.json(
+                { success: false, error: 'No response from assistant' },
+                { status: 500 }
+            );
         }
-        
-        const response = { 
-            success: true, 
-            thread_id: thread.id,
-            run_id: run.id,
-            message_id: message.id,
-            file_id: openaiFile.id,
-            assistant_response: assistantResponse?.content || []
-        };
-        console.log('[POST] Sending successful response:', JSON.stringify(response, null, 2));
-        
-        return NextResponse.json(response);
     } catch (error: any) {
         console.error('[POST] Error occurred:', error);
         console.error('[POST] Error stack:', error.stack);
