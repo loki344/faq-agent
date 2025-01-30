@@ -36,26 +36,31 @@ async function waitForRunCompletion(threadId: string, runId: string) {
     return run;
 }
 
-export async function POST() {
+export async function POST(request: Request) {
     console.log('[POST] Starting FAQ processing');
     try {
-        const filePath = path.join(process.cwd(), 'app/api/CATAN_Spielanleitung_Basisspiel_1.pdf');
-        console.log(`[POST] Reading file from: ${filePath}`);
+        const formData = await request.formData();
+        const file = formData.get('file');
         
-        // Verify file exists and log its size
-        const stats = fs.statSync(filePath);
-        console.log(`[POST] File size: ${stats.size} bytes`);
+        if (!file || !(file instanceof File)) {
+            return NextResponse.json(
+                { success: false, error: 'No file provided' },
+                { status: 400 }
+            );
+        }
+
+        console.log(`[POST] Received file: ${file.name}, size: ${file.size} bytes`);
         
         console.log('[POST] Creating file in OpenAI');
-        // Upload the file to OpenAI
-        const file = await openai.files.create({
-            file: fs.createReadStream(filePath),
+        // Upload the file directly to OpenAI
+        const openaiFile = await openai.files.create({
+            file: file,
             purpose: 'assistants',
         });
-        console.log(`[POST] File created in OpenAI with ID: ${file.id}`);
+        console.log(`[POST] File created in OpenAI with ID: ${openaiFile.id}`);
 
-        console.log('[POST] Creating new thread');
         // Create a new thread
+        console.log('[POST] Creating new thread');
         const thread = await openai.beta.threads.create();
         console.log(`[POST] Thread created with ID: ${thread.id}`);
 
@@ -65,7 +70,7 @@ export async function POST() {
             role: "user",
             content: "Please analyze this document and create a comprehensive list of FAQs based on its content. Format the response as a JSON array of question-answer pairs.",
             attachments: [{
-                file_id: file.id,
+                file_id: openaiFile.id,
                 tools: [{ type: "file_search" }]
             }]
         });
@@ -100,7 +105,7 @@ export async function POST() {
             thread_id: thread.id,
             run_id: run.id,
             message_id: message.id,
-            file_id: file.id,
+            file_id: openaiFile.id,
             assistant_response: assistantResponse?.content || []
         };
         console.log('[POST] Sending successful response:', JSON.stringify(response, null, 2));
