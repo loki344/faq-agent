@@ -16,7 +16,7 @@ export default async function FaqCollectionsPage() {
   const collections = await response.json();
 
   return (
-    <main className="min-h-screen p-8 max-w-5xl mx-auto">
+    <main className="min-h-screen p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-2xl font-bold">FAQ Collections</h1>
         <CreateFaqCollection />
