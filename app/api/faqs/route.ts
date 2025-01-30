@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         const formData = await request.formData();
         const file = formData.get('file');
         
-        if (!file || !(file instanceof File)) {
+        if (!file ) {
             return NextResponse.json(
                 { success: false, error: 'No file provided' },
                 { status: 400 }

@@ -1,22 +1,9 @@
-import FetchDataSteps from "@/components/tutorial/fetch-data-steps";
-import { createClient } from "@/utils/supabase/server";
-import { InfoIcon } from "lucide-react";
-import { redirect } from "next/navigation";
+import { FileUpload } from '@/components/ui/file-upload/FileUpload';
 
-export default async function ProtectedPage() {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect("/sign-in");
-  }
-
+export default function UploadPage() {
   return (
-    <div>
-      <h1>Projects</h1>
-    </div>
+    <main className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-900 to-indigo-900/30 text-white py-12">
+      <FileUpload />
+    </main>
   );
 }
