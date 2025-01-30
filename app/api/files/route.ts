@@ -82,4 +82,43 @@ export async function GET() {
             { status: 500 }
         );
     }
+}
+
+export async function DELETE(request: Request) {
+    console.log('[DELETE] Starting file deletion');
+    try {
+        const { fileId } = await request.json();
+        
+        if (!fileId) {
+            return NextResponse.json(
+                { success: false, error: 'No fileId provided' },
+                { status: 400 }
+            );
+        }
+
+        console.log(`[DELETE] Deleting file with ID: ${fileId}`);
+        await openai.files.del(fileId);
+        
+        console.log(`[DELETE] Successfully deleted file: ${fileId}`);
+        return NextResponse.json({
+            success: true,
+            message: `File ${fileId} deleted successfully`
+        });
+        
+    } catch (error: any) {
+        console.error('[DELETE] Error occurred:', error);
+        console.error('[DELETE] Error stack:', error.stack);
+        
+        const errorResponse = { 
+            success: false, 
+            error: error.message || 'Failed to delete file',
+            error_details: JSON.stringify(error, null, 2)
+        };
+        console.log('[DELETE] Sending error response:', JSON.stringify(errorResponse, null, 2));
+        
+        return NextResponse.json(
+            errorResponse,
+            { status: 500 }
+        );
+    }
 } 
