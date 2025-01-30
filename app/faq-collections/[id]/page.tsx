@@ -136,103 +136,106 @@ export default function FaqCollectionPage({ params }: { params: { id: string } }
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header Section */}
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Select Files for FAQ Generation</h1>
-            <p className="text-muted-foreground mt-1">
-              Choose up to 10 files to generate FAQs
-            </p>
-          </div>
-          
-          {/* View Toggle and Generate Button */}
-          <div className="flex gap-4">
-            <div className="flex bg-secondary rounded-lg p-1">
-              <Button
-                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-              >
-                <Grid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'list' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('list')}
-              >
-                <List className="h-4 w-4" />
-              </Button>
+        {/* Only show file selection UI if there are no FAQs */}
+        {generatedFaqs.length === 0 ? (
+          <>
+            {/* Header Section */}
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold">Select Files for FAQ Generation</h1>
+                <p className="text-muted-foreground mt-1">
+                  Choose up to 10 files to generate FAQs
+                </p>
+              </div>
+              
+              {/* View Toggle and Generate Button */}
+              <div className="flex gap-4">
+                <div className="flex bg-secondary rounded-lg p-1">
+                  <Button
+                    variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('grid')}
+                  >
+                    <Grid className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                    size="sm"
+                    onClick={() => setViewMode('list')}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button
+                  onClick={handleGenerateFAQs}
+                  disabled={selectedFiles.length === 0 || isGenerating}
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  {isGenerating ? 'Generating...' : 'Generate FAQs'}
+                </Button>
+              </div>
             </div>
-            <Button
-              onClick={handleGenerateFAQs}
-              disabled={selectedFiles.length === 0 || isGenerating}
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              {isGenerating ? 'Generating...' : 'Generate FAQs'}
-            </Button>
-          </div>
-        </div>
 
-        {/* Selected Files Count */}
-        {selectedFiles.length > 0 && (
-          <div className="bg-secondary/50 rounded-lg p-4">
-            <p className="text-sm">
-              {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''} selected
-              {selectedFiles.length === 10 && ' (maximum reached)'}
-            </p>
-          </div>
-        )}
+            {/* Selected Files Count */}
+            {selectedFiles.length > 0 && (
+              <div className="bg-secondary/50 rounded-lg p-4">
+                <p className="text-sm">
+                  {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''} selected
+                  {selectedFiles.length === 10 && ' (maximum reached)'}
+                </p>
+              </div>
+            )}
 
-        {/* Files Display Section */}
-        {isLoading ? (
-          <Card className="p-12 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
-              <p className="text-muted-foreground">Loading files...</p>
-            </div>
-          </Card>
-        ) : files.length === 0 ? (
-          <Card className="p-12 text-center">
-            <div className="flex flex-col items-center gap-4">
-              <Upload className="h-12 w-12 text-muted-foreground" />
-              <h3 className="text-xl font-semibold">No files available</h3>
-              <p className="text-muted-foreground">
-                Upload files in the Files section first
-              </p>
-            </div>
-          </Card>
-        ) : (
-          <div className={viewMode === 'grid' ? 'grid grid-cols-4 gap-4' : 'space-y-2'}>
-            {files.map((file) => (
-              <Card
-                key={file.id}
-                className={`${
-                  viewMode === 'grid'
-                    ? 'p-4 flex flex-col'
-                    : 'p-4 flex items-center justify-between'
-                } ${
-                  selectedFiles.includes(file.id)
-                    ? 'border-primary border-2'
-                    : ''
-                } cursor-pointer`}
-                onClick={() => toggleFileSelection(file.id)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex-1">
-                    <p className="font-medium truncate">{file.filename}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {formatFileSize(file.bytes)} • {formatDate(file.created_at)}
-                    </p>
-                  </div>
+            {/* Files Display Section */}
+            {isLoading ? (
+              <Card className="p-12 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
+                  <p className="text-muted-foreground">Loading files...</p>
                 </div>
               </Card>
-            ))}
-          </div>
-        )}
-
-        {/* Generated FAQs Section */}
-        {generatedFaqs.length > 0 && (
-          <div className="mt-12">
+            ) : files.length === 0 ? (
+              <Card className="p-12 text-center">
+                <div className="flex flex-col items-center gap-4">
+                  <Upload className="h-12 w-12 text-muted-foreground" />
+                  <h3 className="text-xl font-semibold">No files available</h3>
+                  <p className="text-muted-foreground">
+                    Upload files in the Files section first
+                  </p>
+                </div>
+              </Card>
+            ) : (
+              <div className={viewMode === 'grid' ? 'grid grid-cols-4 gap-4' : 'space-y-2'}>
+                {files.map((file) => (
+                  <Card
+                    key={file.id}
+                    className={`${
+                      viewMode === 'grid'
+                        ? 'p-4 flex flex-col'
+                        : 'p-4 flex items-center justify-between'
+                    } ${
+                      selectedFiles.includes(file.id)
+                        ? 'border-primary border-2'
+                        : ''
+                    } cursor-pointer`}
+                    onClick={() => toggleFileSelection(file.id)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1">
+                        <p className="font-medium truncate">{file.filename}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {formatFileSize(file.bytes)} • {formatDate(file.created_at)}
+                        </p>
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </>
+        ) : (
+          /* Generated FAQs Section */
+          <div>
             <h3 className="text-2xl font-bold text-center mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-purple-600">
               Generated FAQs
             </h3>
