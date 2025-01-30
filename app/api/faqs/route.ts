@@ -121,7 +121,7 @@ export async function POST(request: Request) {
             // Save FAQs to Supabase with collection ID
             console.log('[POST] Saving FAQs to Supabase');
             const { data: savedFaqs, error: supabaseError } = await supabase
-                .from('faq_items')
+                .from('faqs')
                 .insert(
                     faqArray.map((faq: { question: string; answer: string }) => ({
                         question: faq.question,

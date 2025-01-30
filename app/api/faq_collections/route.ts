@@ -1,0 +1,30 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
+
+// Get all FAQ collections
+export async function GET() {
+    try {
+        const { data, error } = await supabase
+            .from('faq_collection')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return NextResponse.json(data);
+    } catch (error: any) {
+        return NextResponse.json(
+            { error: error.message || 'Failed to fetch FAQ collections' },
+            { status: 500 }
+        );
+    }
+} 
