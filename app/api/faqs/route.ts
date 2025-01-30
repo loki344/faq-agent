@@ -1,6 +1,4 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
 import OpenAI from 'openai';
 
 if (!process.env.OPENAI_API_KEY) {
@@ -39,25 +37,15 @@ async function waitForRunCompletion(threadId: string, runId: string) {
 export async function POST(request: Request) {
     console.log('[POST] Starting FAQ processing');
     try {
-        const formData = await request.formData();
-        const fileData = formData.get('file');
+        const body = await request.json();
+        const { fileId } = body;
         
-        if (!fileData || !(fileData instanceof File)) {
+        if (!fileId) {
             return NextResponse.json(
-                { success: false, error: 'No valid file provided' },
+                { success: false, error: 'No fileId provided' },
                 { status: 400 }
             );
         }
-
-        console.log(`[POST] Received file: ${fileData.name}, size: ${fileData.size} bytes`);
-        
-        console.log('[POST] Creating file in OpenAI');
-        // Upload the file directly to OpenAI
-        const openaiFile = await openai.files.create({
-            file: fileData,
-            purpose: 'assistants',
-        });
-        console.log(`[POST] File created in OpenAI with ID: ${openaiFile.id}`);
 
         // Create a new thread
         console.log('[POST] Creating new thread');
@@ -70,7 +58,7 @@ export async function POST(request: Request) {
             role: "user",
             content: "Please analyze this document and create a comprehensive list of FAQs based on its content. Format the response as a JSON array of question-answer pairs.",
             attachments: [{
-                file_id: openaiFile.id,
+                file_id: fileId,
                 tools: [{ type: "file_search" }]
             }]
         });
