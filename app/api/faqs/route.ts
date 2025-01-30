@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
+import { createClient } from '@supabase/supabase-js';
 
 if (!process.env.OPENAI_API_KEY) {
     throw new Error('Missing OPENAI_API_KEY environment variable');
@@ -10,6 +11,16 @@ const openai = new OpenAI({
 });
 
 const ASSISTANT_ID = 'asst_m5fJSqtQrC8YX9DpgPpDVomB';
+
+// Add Supabase client initialization
+if (!process.env.SUPABASE_URL || !process.env.SUPABASE_ANON_KEY) {
+    throw new Error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_ANON_KEY
+);
 
 async function waitForRunCompletion(threadId: string, runId: string) {
     console.log(`[waitForRunCompletion] Starting to wait for run ${runId} in thread ${threadId}`);
@@ -38,11 +49,18 @@ export async function POST(request: Request) {
     console.log('[POST] Starting FAQ processing');
     try {
         const body = await request.json();
-        const { fileIds } = body;
+        const { fileIds, faq_collection_id } = body;
         
         if (!fileIds || !Array.isArray(fileIds) || fileIds.length === 0) {
             return NextResponse.json(
                 { success: false, error: 'No fileIds provided or invalid format' },
+                { status: 400 }
+            );
+        }
+
+        if (!faq_collection_id) {
+            return NextResponse.json(
+                { success: false, error: 'No faq_collection_id provided' },
                 { status: 400 }
             );
         }
@@ -99,9 +117,29 @@ export async function POST(request: Request) {
             console.log(jsonString, 'after cleaning');  // Debug log
             
             const faqArray = JSON.parse(jsonString);
-            console.log('[POST] Sending successful response:', JSON.stringify(faqArray, null, 2));
             
-            return NextResponse.json(faqArray);
+            // Save FAQs to Supabase with collection ID
+            console.log('[POST] Saving FAQs to Supabase');
+            const { data: savedFaqs, error: supabaseError } = await supabase
+                .from('faq_items')
+                .insert(
+                    faqArray.map((faq: { question: string; answer: string }) => ({
+                        question: faq.question,
+                        answer: faq.answer,
+                        faq_collection_id: faq_collection_id
+                    }))
+                )
+                .select();
+
+            if (supabaseError) {
+                console.error('[POST] Supabase error:', supabaseError);
+                throw new Error(`Failed to save FAQs: ${supabaseError.message}`);
+            }
+
+            console.log('[POST] FAQs saved successfully:', savedFaqs);
+            console.log('[POST] Sending successful response:', JSON.stringify(savedFaqs, null, 2));
+            
+            return NextResponse.json(savedFaqs);
         } else {
             console.warn('[POST] No assistant response found in messages');
             return NextResponse.json(
